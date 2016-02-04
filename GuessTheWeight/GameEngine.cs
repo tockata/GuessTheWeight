@@ -35,7 +35,7 @@
         {
             this.GetPlayers();
             this.realWeight = StaticRandom.Rand(MinWeight, MaxWeight);
-            Console.WriteLine();
+            Console.WriteLine(new string('-', 50));
             Console.WriteLine("Fruit basket real weight is: {0}", this.realWeight);
             Console.WriteLine();
             Stopwatch stopwatch = new Stopwatch();
@@ -55,7 +55,7 @@
             }
             else
             {
-                Console.WriteLine("Winner is: {0}. Guess: {1}", this.winner.Name, this.closestWeight);
+                Console.WriteLine("Winner with closest guess is: {0}. Guess: {1}", this.winner.Name, this.closestWeight);
             }
         }
 
