@@ -7,12 +7,12 @@
     {
         private static int seed = Environment.TickCount;
 
-        private static readonly ThreadLocal<Random> random =
+        private static readonly ThreadLocal<Random> Random =
             new ThreadLocal<Random>(() => new Random(Interlocked.Increment(ref seed)));
 
         public static int Rand(int minValue, int maxValue)
         {
-            return random.Value.Next(minValue, maxValue);
+            return Random.Value.Next(minValue, maxValue);
         }
     }
 }

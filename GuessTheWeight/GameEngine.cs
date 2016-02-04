@@ -13,8 +13,8 @@
         private const int MaxGuessPosibilities = 101;
 
         private object thisLock = new object();
+
         private List<Player> players;
-        private int numberOfPlayers = -1;
 
         private int attemptsCount = 0;
         private bool[] allGuesses;
@@ -37,6 +37,7 @@
             this.realWeight = StaticRandom.Rand(MinWeight, MaxWeight);
             Console.WriteLine();
             Console.WriteLine("Fruit basket real weight is: {0}", this.realWeight);
+            Console.WriteLine();
             Stopwatch stopwatch = new Stopwatch();
             this.StartPlayersThreads();
 
@@ -46,14 +47,14 @@
                 this.elapsedMilliseconds = stopwatch.ElapsedMilliseconds;
             }
 
+            stopwatch.Stop();
+
             if (this.isWeightFound)
             {
                 Console.WriteLine("Winner is: {0}. Total attempts in game: {1}", this.winner.Name, this.attemptsCount);
             }
             else
             {
-                Console.WriteLine("Attempts count: {0}", this.attemptsCount);
-                Console.WriteLine("Elapsed milliseconds: {0}", this.elapsedMilliseconds);
                 Console.WriteLine("Winner is: {0}. Guess: {1}", this.winner.Name, this.closestWeight);
             }
         }
@@ -61,14 +62,15 @@
         private void GetPlayers()
         {
             bool isCorrectNumberOfPlayers = false;
+            int numberOfPlayers = int.MinValue;
             while (!isCorrectNumberOfPlayers)
             {
                 try
                 {
                     Console.Write("Enter number of players [2 to 8]: ");
-                    this.numberOfPlayers = int.Parse(Console.ReadLine());
+                    numberOfPlayers = int.Parse(Console.ReadLine());
 
-                    if (this.numberOfPlayers < 2 || 8 < this.numberOfPlayers)
+                    if (numberOfPlayers < 2 || 8 < numberOfPlayers)
                     {
                         throw new FormatException("Number of players must be between 2 and 8!");
                     }
@@ -81,10 +83,10 @@
                 }
             }
 
-            this.SetPlayersNamesAndTypes();
+            this.SetPlayersNamesAndTypes(numberOfPlayers);
         }
 
-        private void SetPlayersNamesAndTypes()
+        private void SetPlayersNamesAndTypes(int numberOfPlayers)
         {
             Console.WriteLine("Enter players \"Name\" and choose players types");
             Console.WriteLine("Player types are:");
@@ -93,7 +95,7 @@
             Console.WriteLine("3. Thorough player");
             Console.WriteLine("4. Cheater player");
             Console.WriteLine("5. Thorough Cheater player");
-            for (int i = 0; i < this.numberOfPlayers; i++)
+            for (int i = 0; i < numberOfPlayers; i++)
             {
                 bool isCorrectPlayerInput = false;
                 while (!isCorrectPlayerInput)
@@ -152,7 +154,7 @@
 
         private void StartPlayersThreads()
         {
-            for (int i = 0; i < this.numberOfPlayers; i++)
+            for (int i = 0; i < this.players.Count; i++)
             {
                 Thread newThread = new Thread(this.Play);
                 newThread.Start(this.players[i]);
@@ -202,7 +204,7 @@
         {
             int guess = StaticRandom.Rand(MinWeight, MaxWeight);
             player.Guesses.Add(guess);
-            lock (thisLock)
+            lock (this.thisLock)
             {
                 this.allGuesses[guess - GuessOffset] = true;
             }
@@ -221,7 +223,7 @@
             }
 
             player.Guesses.Add(guess);
-            lock (thisLock)
+            lock (this.thisLock)
             {
                 this.allGuesses[guess - GuessOffset] = true;
             }
@@ -235,7 +237,7 @@
             int guess = guessesCount + GuessOffset;
 
             player.Guesses.Add(guess);
-            lock (thisLock)
+            lock (this.thisLock)
             {
                 this.allGuesses[guess - GuessOffset] = true;
             }
@@ -247,7 +249,7 @@
         {
             bool isAllowedGuess = false;
             int guess = int.MinValue;
-            lock (thisLock)
+            lock (this.thisLock)
             {
                 while (!isAllowedGuess)
                 {
@@ -264,7 +266,7 @@
 
         private int ThoroughCheaterPlayerGuess(Player player)
         {
-            lock (thisLock)
+            lock (this.thisLock)
             {
                 int firstAllowedGuessIndex = Array.IndexOf(this.allGuesses, false);
                 int guess = firstAllowedGuessIndex + GuessOffset;
@@ -277,14 +279,14 @@
 
         private void ProcessGuess(int guess, Player player)
         {
-            lock (thisLock)
+            lock (this.thisLock)
             {
                 this.attemptsCount++;
             }
 
             if (guess == this.realWeight)
             {
-                lock (thisLock)
+                lock (this.thisLock)
                 {
                     this.isWeightFound = true;
                     this.winner = player;
@@ -293,7 +295,7 @@
             else
             {
                 int currentGuessDelta = Math.Abs(this.realWeight - guess);
-                lock (thisLock)
+                lock (this.thisLock)
                 {
                     int closestGuessDelta = Math.Abs(this.realWeight - this.closestWeight);
                     if (currentGuessDelta < closestGuessDelta)
