@@ -167,6 +167,11 @@
             int guess;
             while (!this.isWeightFound && this.attemptsCount < 100 && this.elapsedMilliseconds < 1500)
             {
+                lock (this.thisLock)
+                {
+                    this.attemptsCount++;
+                }
+
                 switch (player.Type)
                 {
                     case PlayerType.Random:
@@ -279,11 +284,6 @@
 
         private void ProcessGuess(int guess, Player player)
         {
-            lock (this.thisLock)
-            {
-                this.attemptsCount++;
-            }
-
             if (guess == this.realWeight)
             {
                 lock (this.thisLock)
