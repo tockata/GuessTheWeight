@@ -4,17 +4,23 @@
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Threading;
+    using Contracts;
+    using Models;
 
     public class GameEngine
     {
+        private const int MinNumberOfPlayers = 2;
+        private const int MaxNumberOfPlayers = 8;
         private const int GuessOffset = 40;
         private const int MinWeight = 40;
         private const int MaxWeight = 141;
         private const int MaxGuessPosibilities = 101;
+        private const int MaxAttemptsCount = 100;
+        private const int MaxElapsedMilliseconds = 1500;
 
         private object thisLock = new object();
 
-        private List<Player> players;
+        private List<IPlayer> players;
 
         private int attemptsCount = 0;
         private bool[] allGuesses;
@@ -22,19 +28,19 @@
         private long elapsedMilliseconds = 0;
         private bool isWeightFound = false;
         private int realWeight;
-        private Player winner;
+        private IPlayer winner;
         private int closestWeight = -1;
 
         public GameEngine()
         {
-            this.players = new List<Player>();
+            this.players = new List<IPlayer>();
             this.allGuesses = new bool[MaxGuessPosibilities];
         }
 
         public void Start()
         {
             this.GetPlayers();
-            this.realWeight = StaticRandom.Rand(MinWeight, MaxWeight);
+            this.realWeight = new CustomRandom().Rand(MinWeight, MaxWeight);
             Console.WriteLine(new string('-', 50));
             Console.WriteLine("Fruit basket real weight is: {0}", this.realWeight);
             Console.WriteLine();
@@ -42,7 +48,9 @@
             this.StartPlayersThreads();
 
             stopwatch.Start();
-            while (!this.isWeightFound && this.attemptsCount < 100 && this.elapsedMilliseconds < 1500)
+            while (!this.isWeightFound &&
+                this.attemptsCount < MaxAttemptsCount &&
+                this.elapsedMilliseconds < MaxElapsedMilliseconds)
             {
                 this.elapsedMilliseconds = stopwatch.ElapsedMilliseconds;
             }
@@ -70,7 +78,7 @@
                     Console.Write("Enter number of players [2 to 8]: ");
                     numberOfPlayers = int.Parse(Console.ReadLine());
 
-                    if (numberOfPlayers < 2 || 8 < numberOfPlayers)
+                    if (numberOfPlayers < MinNumberOfPlayers || MaxNumberOfPlayers < numberOfPlayers)
                     {
                         throw new FormatException("Number of players must be between 2 and 8!");
                     }
@@ -112,31 +120,46 @@
                             throw new FormatException("Player type must be between 1 and 5!");
                         }
 
-                        PlayerType playerType = PlayerType.Random;
                         switch (playerTypeInput)
                         {
+                            case 1:
+                                {
+                                    RandomPlayer newPlayer = new RandomPlayer(name, new CustomRandom());
+                                    this.players.Add(newPlayer);
+                                    break;
+                                }
+
                             case 2:
-                                playerType = PlayerType.Memory;
-                                break;
+                                {
+                                    MemoryPlayer newPlayer = new MemoryPlayer(name, new CustomRandom());
+                                    this.players.Add(newPlayer);
+                                    break;
+                                }
 
                             case 3:
-                                playerType = PlayerType.Thorough;
-                                break;
+                                {
+                                    ThoroughPlayer newPlayer = new ThoroughPlayer(name);
+                                    this.players.Add(newPlayer);
+                                    break;
+                                }
 
                             case 4:
-                                playerType = PlayerType.Cheater;
-                                break;
+                                {
+                                    CheaterPlayer newPlayer = new CheaterPlayer(name, new CustomRandom());
+                                    this.players.Add(newPlayer);
+                                    break;
+                                }
 
                             case 5:
-                                playerType = PlayerType.ThoroughCheater;
-                                break;
+                                {
+                                    ThoroughCheaterPlayer newPlayer = new ThoroughCheaterPlayer(name);
+                                    this.players.Add(newPlayer);
+                                    break;
+                                }
 
                             default:
                                 break;
                         }
-
-                        Player newPlayer = new Player(name, playerType);
-                        this.players.Add(newPlayer);
 
                         isCorrectPlayerInput = true;
                     }
@@ -165,120 +188,32 @@
         {
             Player player = param as Player;
             int guess;
-            while (!this.isWeightFound && this.attemptsCount < 100 && this.elapsedMilliseconds < 1500)
+            while (!this.isWeightFound &&
+                this.attemptsCount < MaxAttemptsCount &&
+                this.elapsedMilliseconds < MaxElapsedMilliseconds)
             {
                 lock (this.thisLock)
                 {
                     this.attemptsCount++;
                 }
 
-                switch (player.Type)
+                if (player is IHonestPlayer)
                 {
-                    case PlayerType.Random:
-                        guess = this.RandomPlayerGuess(player);
-                        this.ProcessGuess(guess, player);
-                        break;
+                    guess = (player as IHonestPlayer).MakeGuess();
+                    this.allGuesses[guess - GuessOffset] = true;
 
-                    case PlayerType.Memory:
-                        guess = this.MemoryPlayerGuess(player);
-                        this.ProcessGuess(guess, player);
-                        break;
-
-                    case PlayerType.Thorough:
-                        guess = this.ThoroughPlayerGuess(player);
-                        this.ProcessGuess(guess, player);
-                        break;
-
-                    case PlayerType.Cheater:
-                        guess = this.CheaterPlayerGuess(player);
-                        this.ProcessGuess(guess, player);
-                        break;
-
-                    case PlayerType.ThoroughCheater:
-                        guess = this.ThoroughCheaterPlayerGuess(player);
-                        this.ProcessGuess(guess, player);
-                        break;
-
-                    default:
-                        break;
+                    this.ProcessGuess(guess, player);
                 }
-            }
-        }
-
-        private int RandomPlayerGuess(Player player)
-        {
-            int guess = StaticRandom.Rand(MinWeight, MaxWeight);
-            player.Guesses.Add(guess);
-            lock (this.thisLock)
-            {
-                this.allGuesses[guess - GuessOffset] = true;
-            }
-
-            return guess;
-        }
-
-        private int MemoryPlayerGuess(Player player)
-        {
-            bool isAllowedGuess = false;
-            int guess = int.MinValue;
-            while (!isAllowedGuess)
-            {
-                guess = StaticRandom.Rand(MinWeight, MaxWeight);
-                isAllowedGuess = !player.Guesses.Contains(guess);
-            }
-
-            player.Guesses.Add(guess);
-            lock (this.thisLock)
-            {
-                this.allGuesses[guess - GuessOffset] = true;
-            }
-
-            return guess;
-        }
-
-        private int ThoroughPlayerGuess(Player player)
-        {
-            int guessesCount = player.Guesses.Count;
-            int guess = guessesCount + GuessOffset;
-
-            player.Guesses.Add(guess);
-            lock (this.thisLock)
-            {
-                this.allGuesses[guess - GuessOffset] = true;
-            }
-
-            return guess;
-        }
-
-        private int CheaterPlayerGuess(Player player)
-        {
-            bool isAllowedGuess = false;
-            int guess = int.MinValue;
-            lock (this.thisLock)
-            {
-                while (!isAllowedGuess)
+                else if (player is ICheaterPlayer)
                 {
-                    guess = StaticRandom.Rand(MinWeight, MaxWeight);
-                    isAllowedGuess = !this.allGuesses[guess - GuessOffset];
+                    lock (this.thisLock)
+                    {
+                        guess = (player as ICheaterPlayer).MakeGuess(this.allGuesses);
+                        this.allGuesses[guess - GuessOffset] = true;
+                    }
+
+                    this.ProcessGuess(guess, player);
                 }
-
-                player.Guesses.Add(guess);
-                this.allGuesses[guess - GuessOffset] = true;
-            }
-
-            return guess;
-        }
-
-        private int ThoroughCheaterPlayerGuess(Player player)
-        {
-            lock (this.thisLock)
-            {
-                int firstAllowedGuessIndex = Array.IndexOf(this.allGuesses, false);
-                int guess = firstAllowedGuessIndex + GuessOffset;
-
-                player.Guesses.Add(guess);
-                this.allGuesses[guess - GuessOffset] = true;
-                return guess;
             }
         }
 
@@ -288,8 +223,11 @@
             {
                 lock (this.thisLock)
                 {
-                    this.isWeightFound = true;
-                    this.winner = player;
+                    if (this.isWeightFound == false)
+                    {
+                        this.isWeightFound = true;
+                        this.winner = player;
+                    }
                 }
             }
             else

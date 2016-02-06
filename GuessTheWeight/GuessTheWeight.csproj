@@ -43,16 +43,27 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Contracts\IHonestPlayer.cs" />
+    <Compile Include="Contracts\IPlayer.cs" />
+    <Compile Include="Contracts\ICheaterPlayer.cs" />
+    <Compile Include="Contracts\IRandomGenerator.cs" />
+    <Compile Include="Contracts\IRandomPlayer.cs" />
     <Compile Include="GameEngine.cs" />
     <Compile Include="ConsoleApp.cs" />
-    <Compile Include="Player.cs" />
-    <Compile Include="PlayerType.cs" />
+    <Compile Include="Models\CheaterPlayer.cs" />
+    <Compile Include="Models\MemoryPlayer.cs" />
+    <Compile Include="Models\Player.cs" />
+    <Compile Include="Enumerations\PlayerType.cs" />
+    <Compile Include="Models\RandomPlayer.cs" />
+    <Compile Include="Models\ThoroughCheaterPlayer.cs" />
+    <Compile Include="Models\ThoroughPlayer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="StaticRandom.cs" />
+    <Compile Include="CustomRandom.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -1,4 +1,4 @@
-﻿namespace GuessTheWeight
+﻿namespace GuessTheWeight.Enumerations
 {
     public enum PlayerType
     {

@@ -2,17 +2,18 @@
 {
     using System;
     using System.Threading;
+    using Contracts;
 
-    public static class StaticRandom
+    public class CustomRandom : IRandomGenerator
     {
         private static int seed = Environment.TickCount;
 
-        private static readonly ThreadLocal<Random> Random =
+        private readonly ThreadLocal<Random> random =
             new ThreadLocal<Random>(() => new Random(Interlocked.Increment(ref seed)));
 
-        public static int Rand(int minValue, int maxValue)
+        public int Rand(int minValue, int maxValue)
         {
-            return Random.Value.Next(minValue, maxValue);
+            return this.random.Value.Next(minValue, maxValue);
         }
     }
 }
