@@ -5,32 +5,28 @@
     using Enumerations;
     using GuessTheWeight.Contracts;
 
-    public class CheaterPlayer : Player, IRandomPlayer, ICheaterPlayer
+    public class CheaterPlayer : RandomPlayer, ICheaterPlayer
     {
         private const PlayerType DefaultPlayerType = PlayerType.Cheater;
         private const int GuessOffset = 40;
 
         public CheaterPlayer(string name, IRandomGenerator randomGenerator)
-            : base(name)
+            : base(name, randomGenerator)
         {
             this.Type = DefaultPlayerType;
-            this.RandomGenerator = randomGenerator;
         }
 
-        public IRandomGenerator RandomGenerator { get; set; }
-
-        public int MakeGuess(IEnumerable allGuesses)
+        public int MakeCheatGuess(IEnumerable allGuesses)
         {
             bool[] allGuessesArray = allGuesses.Cast<bool>().ToArray();
             bool isAllowedGuess = false;
             int guess = int.MinValue;
+
             while (!isAllowedGuess)
             {
-                guess = this.RandomGenerator.Rand(MinWeight, MaxWeight);
+                guess = base.MakeGuess();
                 isAllowedGuess = !allGuessesArray[guess - GuessOffset];
             }
-
-            this.Guesses.Add(guess);
 
             return guess;
         }

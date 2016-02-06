@@ -197,20 +197,22 @@
                     this.attemptsCount++;
                 }
 
-                if (player is IHonestPlayer)
-                {
-                    guess = (player as IHonestPlayer).MakeGuess();
-                    this.allGuesses[guess - GuessOffset] = true;
-
-                    this.ProcessGuess(guess, player);
-                }
-                else if (player is ICheaterPlayer)
+                if (player is ICheaterPlayer)
                 {
                     lock (this.thisLock)
                     {
-                        guess = (player as ICheaterPlayer).MakeGuess(this.allGuesses);
+                        guess = (player as ICheaterPlayer).MakeCheatGuess(this.allGuesses);
+                        player.Guesses.Add(guess);
                         this.allGuesses[guess - GuessOffset] = true;
                     }
+
+                    this.ProcessGuess(guess, player);
+                }
+                else
+                {
+                    guess = player.MakeGuess();
+                    player.Guesses.Add(guess);
+                    this.allGuesses[guess - GuessOffset] = true;
 
                     this.ProcessGuess(guess, player);
                 }

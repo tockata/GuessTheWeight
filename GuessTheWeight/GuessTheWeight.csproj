@@ -43,7 +43,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Contracts\IHonestPlayer.cs" />
     <Compile Include="Contracts\IPlayer.cs" />
     <Compile Include="Contracts\ICheaterPlayer.cs" />
     <Compile Include="Contracts\IRandomGenerator.cs" />

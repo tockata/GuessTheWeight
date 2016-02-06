@@ -3,7 +3,7 @@
     using GuessTheWeight.Contracts;
     using GuessTheWeight.Enumerations;
 
-    public class RandomPlayer : Player, IHonestPlayer, IRandomPlayer
+    public class RandomPlayer : Player, IRandomPlayer
     {
         private const PlayerType DefaultPlayerType = PlayerType.Random;
 
@@ -16,10 +16,9 @@
 
         public IRandomGenerator RandomGenerator { get; set; }
 
-        public int MakeGuess()
+        public override int MakeGuess()
         {
             int guess = this.RandomGenerator.Rand(MinWeight, MaxWeight);
-            this.Guesses.Add(guess);
 
             return guess;
         }

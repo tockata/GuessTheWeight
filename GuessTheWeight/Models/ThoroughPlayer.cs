@@ -1,12 +1,11 @@
 ﻿namespace GuessTheWeight.Models
 {
-    using Contracts;
     using GuessTheWeight.Enumerations;
 
-    public class ThoroughPlayer : Player, IHonestPlayer
+    public class ThoroughPlayer : Player
     {
         private const PlayerType DefaultPlayerType = PlayerType.Thorough;
-        private const int GuessOffset = 40;
+        protected const int GuessOffset = 40;
 
         public ThoroughPlayer(string name)
             : base(name)
@@ -14,12 +13,11 @@
             this.Type = DefaultPlayerType;
         }
 
-        public int MakeGuess()
+        public override int MakeGuess()
         {
             int guessesCount = this.Guesses.Count;
             int guess = guessesCount + GuessOffset;
 
-            this.Guesses.Add(guess);
             return guess;
         }
     }

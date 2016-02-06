@@ -4,6 +4,6 @@
 
     public interface ICheaterPlayer : IPlayer
     {
-        int MakeGuess(IEnumerable allGuesses);
+        int MakeCheatGuess(IEnumerable allGuesses);
     }
 }

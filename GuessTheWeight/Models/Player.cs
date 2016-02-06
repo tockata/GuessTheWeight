@@ -45,5 +45,7 @@
         }
 
         public PlayerType Type { get; set; }
+
+        public abstract int MakeGuess();
     }
 }

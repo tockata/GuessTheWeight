@@ -10,5 +10,7 @@
         HashSet<int> Guesses { get; }
 
         PlayerType Type { get; set; }
+
+        int MakeGuess();
     }
 }
