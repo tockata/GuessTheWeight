@@ -19,8 +19,17 @@
         public int MakeCheatGuess(IEnumerable allGuesses)
         {
             bool[] allGuessesArray = allGuesses.Cast<bool>().ToArray();
-            int firstAllowedGuessIndex = Array.IndexOf(allGuessesArray, false);
-            int guess = firstAllowedGuessIndex + GuessOffset;
+            bool isAllowedGuess = false;
+            int guess = base.MakeGuess();
+
+            while (!isAllowedGuess)
+            {
+                isAllowedGuess = !allGuessesArray[guess - GuessOffset];
+                if (!isAllowedGuess)
+                {
+                    guess++;
+                }
+            }
 
             return guess;
         }
